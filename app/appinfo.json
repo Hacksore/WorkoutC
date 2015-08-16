@@ -1,0 +1,22 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "WorkoutC",
+    "longName": "WorkoutC",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "WorkoutC",
+    "targetPlatforms": [
+        "basalt"
+    ],
+    "uuid": "109b5639-b187-4475-9ec5-6354b8e902e9",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
