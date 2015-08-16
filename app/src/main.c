@@ -19,7 +19,7 @@ unsigned int pause_time;
 
 static bool running;
 static bool paused;
-static int seconds_in_hour = 60;
+static int seconds_in_hour = 3600;
 static WakeupId s_wakeup_id;
 
 static void canvas_update_proc(Layer *this_layer, GContext *ctx) {
@@ -92,10 +92,10 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed){
 	
 	set_perc_text(barP);
 		
-	int tim = ((time(NULL) - pause_time) - started_at);
+/*	int tim = ((time(NULL) - pause_time) - started_at);
 	static char str[32];
 	snprintf(str, 32, "%s%d%s%d", "S: ", tim, "\nP: ", pause_time);
-	text_layer_set_text(dev_output_layer, str);
+	text_layer_set_text(dev_output_layer, str);*/
 	
 	layer_mark_dirty(s_canvas_layer);
 	
@@ -225,7 +225,7 @@ static void init(void){
 			wakeup_handler(id, reason);
 		}
 	}	
-	
+
 	wakeup_service_subscribe(wakeup_handler);
 	
 	window_stack_push(s_main_window, true);
