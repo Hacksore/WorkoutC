@@ -1,5 +1,5 @@
 # WorkoutC
-Is a Pebble Time watch app that lets you see the current duration of your workout as a percent rather then time left.
+Is a Pebble Time watch app that lets you see the current duration of your workout as a percent rather than time left.
 
 # Usage
 ```
