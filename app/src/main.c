@@ -10,6 +10,7 @@ static Layer *s_canvas_layer;
 static TextLayer *s_output_layer;
 static TextLayer *status_output_layer;
 static TextLayer *dev_output_layer;
+static TextLayer *title_output_layer;
 
 int barP = 0;
 static int bW = 120;
@@ -132,6 +133,14 @@ static void main_window_load(Window *window) {
 	text_layer_set_font(dev_output_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
 	text_layer_set_text(dev_output_layer, "");
 	layer_add_child(window_layer, text_layer_get_layer(dev_output_layer));
+
+	title_output_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, 36));
+	text_layer_set_text_alignment(title_output_layer, GTextAlignmentCenter);
+	text_layer_set_background_color(title_output_layer, GColorGreen);
+	text_layer_set_text_color(title_output_layer, GColorOxfordBlue);	
+	text_layer_set_font(title_output_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	text_layer_set_text(title_output_layer, "WorkoutC");
+	layer_add_child(window_layer, text_layer_get_layer(title_output_layer));
 	
 	started_at = persist_read_int(PERSIST_START_TIME);	
 	if(started_at > 0){		

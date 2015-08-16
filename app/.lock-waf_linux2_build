@@ -1,8 +1,0 @@
-argv = ['/var/pebble-dev/PebbleSDK-3.2.1/Pebble/waf', 'configure']
-environ = {'USERNAME': 'root', 'PYTHONPATH': '/var/pebble-dev/PebbleSDK-3.2.1/bin/../.env/lib/python2.7/site-packages', 'LINES': '24', 'SUDO_GID': '1000', 'LOGNAME': 'root', 'USER': 'root', 'NO_GCE_CHECK': 'False', 'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/pebble-dev/PebbleSDK-3.2.1/arm-cs-tools/bin', 'HOME': '/home/vagrant', 'COLUMNS': '80', 'LANG': 'en_US.UTF-8', 'SUDO_COMMAND': '/var/pebble-dev/PebbleSDK-3.2.1/bin/pebble build', 'TERM': 'unknown', 'SHELL': '/bin/bash', 'MAIL': '/var/mail/root', 'SUDO_USER': 'vagrant', 'SUDO_UID': '1000'}
-files = ['/home/vagrant/pebble-dev/app/wscript']
-hash = 7073463171006590119
-options = {'files': '', 'jobs': 2, 'verbose': 0, 'nocache': False, 'progress_bar': 0, 'timestamp': None, 'distcheck_args': None, 'top': '', 'destdir': '', 'keep': 0, 'zones': '', 'debug': False, 'prefix': '/usr/local/', 'download': False, 'force': False, 'targets': '', 'out': ''}
-out_dir = '/home/vagrant/pebble-dev/app/build'
-run_dir = '/home/vagrant/pebble-dev/app'
-top_dir = '/home/vagrant/pebble-dev/app'
