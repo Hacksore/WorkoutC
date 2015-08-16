@@ -12,3 +12,5 @@ Select - Start the timer
 * Settings page with github pages
 * Variable session length via the settings page
 * Implement a confirm prompt for stopping so you don't stop on accident
+* Make pausing persistant as well
+* Rework the wake implementation 

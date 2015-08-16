@@ -14,12 +14,12 @@ static TextLayer *dev_output_layer;
 int barP = 0;
 static int bW = 120;
 static int bH = 16;	
-unsigned int elapsed_time;
+unsigned int started_at;
 unsigned int pause_time;
 
 static bool running;
 static bool paused;
-static int seconds_in_hour = 3600;
+static int seconds_in_hour = 60;
 static WakeupId s_wakeup_id;
 
 static void canvas_update_proc(Layer *this_layer, GContext *ctx) {
@@ -51,13 +51,18 @@ static void set_perc_text(int i){
 
 static void timer_finished(){
 	
+	window_stack_push(s_main_window, true);
+	
 	set_status_text("Done!");
+	set_perc_text(100);
 	persist_delete(PERSIST_KEY_WAKEUP_ID);
 	
-	barP = 0;
+	barP = 100;
 	running = false;
-	elapsed_time = 0;
+	started_at = 0;
 	pause_time = 0;
+	
+	layer_mark_dirty(s_canvas_layer);	
 	
 	static const uint32_t const segments[] = {1000, 200, 1000, 200, 1000, 200};
 	VibePattern pat = {
@@ -82,19 +87,19 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed){
 		return;
 	}
 	
-	float f = (time(NULL) - elapsed_time);
+	float f = ((time(NULL) - pause_time) - started_at);
 	barP = (int) (f / (seconds_in_hour/2) * 100);	
 	
 	set_perc_text(barP);
 		
-	int tim = (time(NULL) - elapsed_time) - pause_time;
+	int tim = ((time(NULL) - pause_time) - started_at);
 	static char str[32];
-	snprintf(str, 32, "%s%d", "DEV: ", tim);
+	snprintf(str, 32, "%s%d%s%d", "S: ", tim, "\nP: ", pause_time);
 	text_layer_set_text(dev_output_layer, str);
 	
 	layer_mark_dirty(s_canvas_layer);
 	
-	if(barP > 100){		
+	if(barP >= 100){		
 		timer_finished();
 	}
 
@@ -118,18 +123,18 @@ static void main_window_load(Window *window) {
 	
 	status_output_layer = text_layer_create(GRect(0, 60, window_bounds.size.w, 32));
 	text_layer_set_text_alignment(status_output_layer, GTextAlignmentCenter);
-	text_layer_set_font(status_output_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+	text_layer_set_font(status_output_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
 	text_layer_set_text(status_output_layer, "");
 	layer_add_child(window_layer, text_layer_get_layer(status_output_layer));	
 	
-	dev_output_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, 32));
+	dev_output_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, 64));
 	text_layer_set_text_alignment(dev_output_layer, GTextAlignmentCenter);
 	text_layer_set_font(dev_output_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
 	text_layer_set_text(dev_output_layer, "");
 	layer_add_child(window_layer, text_layer_get_layer(dev_output_layer));
 	
-	elapsed_time = persist_read_int(PERSIST_START_TIME);	
-	if(elapsed_time > 0){		
+	started_at = persist_read_int(PERSIST_START_TIME);	
+	if(started_at > 0){		
 		running = true;
 		set_status_text("In Progress");
 	}	
@@ -137,19 +142,33 @@ static void main_window_load(Window *window) {
 }
 
 static void main_window_unload(Window *window) {
-	persist_write_int(PERSIST_START_TIME, elapsed_time);
+	persist_write_int(PERSIST_START_TIME, started_at);
 	layer_destroy(s_canvas_layer);
 }
 
+static void toggle_pause(){
+	
+	if(!running && !paused){
+		return;
+	}
+	
+	running = !running;
+	paused = !paused;
+	
+	paused ? vibes_double_pulse() : vibes_short_pulse();
+	set_status_text(paused ? "Paused" : "In Progress");
+}
+
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-	if(running || elapsed_time > 0){
+	
+	if(running && !paused){
 		return;
 	}
 	
 	if (!wakeup_query(s_wakeup_id, NULL)) {
-		elapsed_time = time(NULL);
+		started_at = time(NULL);
 		running = true;
-		time_t future_time = elapsed_time + (seconds_in_hour/2);
+		time_t future_time = started_at + (seconds_in_hour/2);
 
 		s_wakeup_id = wakeup_schedule(future_time, WAKEUP_REASON, true);
 		persist_write_int(PERSIST_KEY_WAKEUP_ID, s_wakeup_id);
@@ -161,21 +180,25 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-	running = !running;
-	paused = !paused;
-	
-	paused ? vibes_double_pulse() : vibes_short_pulse();
-	set_status_text(paused ? "Paused" : "In Progress");
+	toggle_pause();
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+
 	running = false;
-	elapsed_time = 0;
+	paused = false;
+	started_at = 0;
 	pause_time = 0;
-	
+	barP = 0;
+	s_wakeup_id = 0;
+	persist_delete(PERSIST_KEY_WAKEUP_ID);
+		
 	set_status_text("Stopped");
 	set_perc_text(0);
+	
+	layer_mark_dirty(s_canvas_layer);
 }
+
 
 static void click_config_provider(void *context) {
 	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);	
@@ -202,7 +225,8 @@ static void init(void){
 			wakeup_handler(id, reason);
 		}
 	}	
-	// wakeup_service_subscribe(wakeup_handler); ?
+	
+	wakeup_service_subscribe(wakeup_handler);
 	
 	window_stack_push(s_main_window, true);
 }
